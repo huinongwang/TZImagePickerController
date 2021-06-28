@@ -2,7 +2,6 @@
 "OK"                      = "O.K";
 "Back"                    = "Înapoi";
 "Done"                    = "Terminat";
-"Edit"                    = "Editați | ×";
 "Sorry"                   = "scuze";
 "Cancel"                  = "Anulare";
 "Setting"                 = "reglaj";
@@ -17,4 +16,3 @@
 "Can not use camera"      = "Nu pot folosi camera";
 "Can not choose both video and photo" = "Nu puteți alege atât videoclipul,cât și fotografia";
 "Can not choose both photo and GIF" = "Nu puteți alege atât fotografia,cât și GIF";
-"Selected for %ld seconds" = "Selectat pentru %ld secunde";

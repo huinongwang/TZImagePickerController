@@ -18,6 +18,7 @@
 #import "TZLocationManager.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "TZImageRequestOperation.h"
+#import <PhotosUI/PhotosUI.h>
 
 @interface TZPhotoPickerController ()<UICollectionViewDataSource,UICollectionViewDelegate,UIImagePickerControllerDelegate,UINavigationControllerDelegate, PHPhotoLibraryChangeObserver> {
     NSMutableArray *_models;
@@ -30,6 +31,7 @@
     UIButton *_originalPhotoButton;
     UILabel *_originalPhotoLabel;
     UIView *_divideLine;
+    UIButton *_chooseImageButton;
     
     BOOL _shouldScrollToBottom;
     BOOL _showTakePhotoBtn;
@@ -286,6 +288,23 @@ static CGFloat itemMargin = 5;
         if (_isSelectOriginalPhoto) [self getSelectedPhotoBytes];
     }
     
+    if (tzImagePickerVc.showChooseImageButton) {
+        if (@available(iOS 14.0, *)) {
+            PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatusForAccessLevel:PHAccessLevelReadWrite];
+            if (status == PHAuthorizationStatusLimited) {
+                self -> _chooseImageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+                [self -> _chooseImageButton setTitle:@"更多照片" forState:UIControlStateNormal];
+                [self -> _chooseImageButton setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
+                self -> _chooseImageButton.titleLabel.font = [UIFont systemFontOfSize:15.0];
+                self -> _chooseImageButton.backgroundColor = [UIColor colorWithRed:57/255.0 green:191/255.0 blue:62/255.0 alpha:1.0];
+                self -> _chooseImageButton.layer.cornerRadius = 3;
+                self -> _chooseImageButton.layer.masksToBounds = YES;
+                [self -> _chooseImageButton addTarget:self action:@selector(chooseImage) forControlEvents:UIControlEventTouchUpInside];
+                [self -> _bottomToolBar addSubview:self -> _chooseImageButton];
+            }
+        }
+    }
+    
     _doneButton = [UIButton buttonWithType:UIButtonTypeCustom];
     _doneButton.titleLabel.font = [UIFont systemFontOfSize:16];
     [_doneButton addTarget:self action:@selector(doneButtonClick) forControlEvents:UIControlEventTouchUpInside];
@@ -344,6 +363,12 @@ static CGFloat itemMargin = 5;
     }
 }
 
+- (void)chooseImage {
+    if (@available(iOS 14.0, *)) {
+        [[PHPhotoLibrary sharedPhotoLibrary] presentLimitedLibraryPickerFromViewController:self];
+    }
+}
+
 #pragma mark - Layout
 
 - (void)viewDidLayoutSubviews {
@@ -391,10 +416,13 @@ static CGFloat itemMargin = 5;
     }
     _previewButton.frame = CGRectMake(10, 3, previewWidth, 44);
     _previewButton.tz_width = !tzImagePickerVc.showSelectBtn ? 0 : previewWidth;
+    
+    _chooseImageButton.frame = CGRectMake(_previewButton.tz_left+_previewButton.tz_width + 10, 8.5, 78, 33);
     if (tzImagePickerVc.allowPickingOriginalPhoto) {
         CGFloat fullImageWidth = [tzImagePickerVc.fullImageBtnTitleStr boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) options:NSStringDrawingUsesFontLeading attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:13]} context:nil].size.width;
         _originalPhotoButton.frame = CGRectMake(CGRectGetMaxX(_previewButton.frame), 0, fullImageWidth + 56, 50);
         _originalPhotoLabel.frame = CGRectMake(fullImageWidth + 46, 0, 80, 50);
+        _chooseImageButton.frame = CGRectMake(_originalPhotoButton.tz_left + _originalPhotoButton.tz_width, 8.5, 78, 33);
     }
     [_doneButton sizeToFit];
     _doneButton.frame = CGRectMake(self.view.tz_width - _doneButton.tz_width - 12, 0, _doneButton.tz_width, 50);
@@ -433,6 +461,7 @@ static CGFloat itemMargin = 5;
     if (_isSelectOriginalPhoto) {
         [self getSelectedPhotoBytes];
     }
+    [self updateChooseImageButtonFrame];
 }
 
 - (void)doneButtonClick {
@@ -796,7 +825,7 @@ static CGFloat itemMargin = 5;
     _originalPhotoButton.selected = (_isSelectOriginalPhoto && _originalPhotoButton.enabled);
     _originalPhotoLabel.hidden = (!_originalPhotoButton.isSelected);
     if (_isSelectOriginalPhoto) [self getSelectedPhotoBytes];
-    
+    [self updateChooseImageButtonFrame];
     if (tzImagePickerVc.photoPickerPageDidRefreshStateBlock) {
         tzImagePickerVc.photoPickerPageDidRefreshStateBlock(_collectionView, _bottomToolBar, _previewButton, _originalPhotoButton, _originalPhotoLabel, _doneButton, _numberImageView, _numberLabel, _divideLine);;
     }
@@ -837,8 +866,25 @@ static CGFloat itemMargin = 5;
     }
     TZImagePickerController *imagePickerVc = (TZImagePickerController *)self.navigationController;
     [[TZImageManager manager] getPhotosBytesWithArray:imagePickerVc.selectedModels completion:^(NSString *totalBytes) {
-        self->_originalPhotoLabel.text = [NSString stringWithFormat:@"(%@)",totalBytes];
+        NSString *content = [NSString stringWithFormat:@"(%@)",totalBytes];
+        self->_originalPhotoLabel.text = content;
+        if (self -> _chooseImageButton) {
+            CGSize size = [self -> _originalPhotoLabel sizeThatFits:CGSizeMake(50, 50)];
+            CGRect frame = [self -> _originalPhotoButton convertRect:self -> _originalPhotoLabel.frame toView:self -> _bottomToolBar];
+            self -> _chooseImageButton.frame = CGRectMake(frame.origin.x + size.width + 10, 8.5, 78, 33);
+        }
     }];
+}
+
+- (void)updateChooseImageButtonFrame {
+    if (_chooseImageButton) {
+        TZImagePickerController *tzController = (TZImagePickerController *)self.navigationController;
+        if (tzController.allowPickingOriginalPhoto) {
+            _chooseImageButton.frame = CGRectMake(_originalPhotoButton.tz_left + _originalPhotoButton.tz_width, 8.5, 78, 33);
+        } else {
+            _chooseImageButton.frame = CGRectMake(_previewButton.tz_left+_previewButton.tz_width + 10, 8.5, 78, 33);
+        }
+    }
 }
 
 - (void)scrollCollectionViewToBottom {
