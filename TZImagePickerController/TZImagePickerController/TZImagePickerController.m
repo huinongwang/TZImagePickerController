@@ -134,12 +134,20 @@
     [super viewWillAppear:animated];
     _originStatusBarStyle = [UIApplication sharedApplication].statusBarStyle;
     [UIApplication sharedApplication].statusBarStyle = self.statusBarStyle;
+    UIWindow *window = [UIApplication sharedApplication].keyWindow;
+    window.backgroundColor = UIColor.blackColor;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [UIApplication sharedApplication].statusBarStyle = _originStatusBarStyle;
     [self hideProgressHUD];
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    UIWindow *window = [UIApplication sharedApplication].keyWindow;
+    window.backgroundColor = UIColor.whiteColor;
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
