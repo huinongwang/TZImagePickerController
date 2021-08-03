@@ -162,6 +162,8 @@
 @property (nonatomic, assign) BOOL isStatusBarDefault __attribute__((deprecated("Use -statusBarStyle.")));
 /// statusBar的样式，默认为UIStatusBarStyleLightContent
 @property (assign, nonatomic) UIStatusBarStyle statusBarStyle;
+/// present时，背景window颜色
+@property (nonatomic, strong) UIColor *presentWindowColor;
 
 #pragma mark -
 /// Single selection mode, valid when maxImagesCount = 1

@@ -34,6 +34,7 @@
 /// 默认4列, TZPhotoPickerController中的照片collectionView
 @property (nonatomic, assign) NSInteger columnNumber;
 @property (nonatomic, assign) NSInteger HUDTimeoutCount; ///< 超时隐藏HUD计数
+@property (nonatomic, strong) UIColor *originalWindowColor;
 @end
 
 @implementation TZImagePickerController
@@ -134,8 +135,11 @@
     [super viewWillAppear:animated];
     _originStatusBarStyle = [UIApplication sharedApplication].statusBarStyle;
     [UIApplication sharedApplication].statusBarStyle = self.statusBarStyle;
-    UIWindow *window = [UIApplication sharedApplication].keyWindow;
-    window.backgroundColor = UIColor.blackColor;
+    if (self.presentWindowColor) {
+        UIWindow *window = [UIApplication sharedApplication].keyWindow;
+        self.originalWindowColor = window.backgroundColor;
+        window.backgroundColor = self.presentWindowColor;
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -146,8 +150,10 @@
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-    UIWindow *window = [UIApplication sharedApplication].keyWindow;
-    window.backgroundColor = UIColor.whiteColor;
+    if (self.presentWindowColor) {
+        UIWindow *window = [UIApplication sharedApplication].keyWindow;
+        window.backgroundColor = self.presentWindowColor;
+    }
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
