@@ -4,7 +4,7 @@
 //
 //  Created by 谭真 on 15/12/24.
 //  Copyright © 2015年 谭真. All rights reserved.
-//  version 3.6.0 - 2021.04.02
+//  version 3.6.6 - 2021.09.21
 //  更多信息，请前往项目的github地址：https://github.com/banchichen/TZImagePickerController
 
 /*
@@ -330,6 +330,7 @@
 + (CGFloat)tz_statusBarHeight;
 // 获得Info.plist数据字典
 + (NSDictionary *)tz_getInfoDictionary;
++ (NSString *)tz_getAppName;
 + (BOOL)tz_isRightToLeftLayout;
 + (void)configBarButtonItem:(UIBarButtonItem *)item tzImagePickerVc:(TZImagePickerController *)tzImagePickerVc;
 + (BOOL)isICloudSyncError:(NSError *)error;
