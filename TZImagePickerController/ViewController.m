@@ -16,7 +16,6 @@
 #import "TZVideoPlayerController.h"
 #import "TZPhotoPreviewController.h"
 #import "TZGifPhotoPreviewController.h"
-#import "TZLocationManager.h"
 #import "TZAssetCell.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "FLAnimatedImage.h"
@@ -344,6 +343,11 @@
     NSInteger left = 30;
     NSInteger widthHeight = self.view.tz_width - 2 * left;
     NSInteger top = (self.view.tz_height - widthHeight) / 2;
+    if ([TZCommonTools tz_isLandscape]) {
+        top = 30;
+        widthHeight = self.view.tz_height - 2 * left;
+        left = (self.view.tz_width - widthHeight) / 2;
+    }
     imagePickerVc.cropRect = CGRectMake(left, top, widthHeight, widthHeight);
     imagePickerVc.scaleAspectFillCrop = YES;
     // 设置横屏下的裁剪尺寸
@@ -459,6 +463,7 @@
 
 // 调用相机
 - (void)pushImagePickerController {
+#ifdef TZ_HAVE_LOCATION_CODE
     // 提前定位
     __weak typeof(self) weakSelf = self;
     [[TZLocationManager manager] startLocationWithSuccessBlock:^(NSArray<CLLocation *> *locations) {
@@ -468,7 +473,8 @@
         __strong typeof(weakSelf) strongSelf = weakSelf;
         strongSelf.location = nil;
     }];
-    
+#endif
+
     UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
     if ([UIImagePickerController isSourceTypeAvailable: UIImagePickerControllerSourceTypeCamera]) {
         self.imagePickerVc.sourceType = sourceType;

@@ -4,7 +4,7 @@
 //
 //  Created by 谭真 on 15/12/24.
 //  Copyright © 2015年 谭真. All rights reserved.
-//  version 3.6.6 - 2021.09.21
+//  version 3.8.2 - 2022.07.20
 //  更多信息，请前往项目的github地址：https://github.com/banchichen/TZImagePickerController
 
 /*
@@ -22,9 +22,18 @@
 #import "TZImageManager.h"
 #import "TZVideoPlayerController.h"
 #import "TZGifPhotoPreviewController.h"
-#import "TZLocationManager.h"
 #import "TZPhotoPreviewController.h"
 #import "TZPhotoPreviewCell.h"
+
+#if __has_include("TZLocationManager.h")
+#define TZ_HAVE_LOCATION_CODE   1
+#import "TZLocationManager.h"
+#else
+#undef TZ_HAVE_LOCATION_CODE
+#endif
+
+#define CURRENT_SYSTEM_VERSION         [[UIDevice currentDevice] systemVersion]
+#define SYSTEM_VERSION_GREATER_THAN_15 ([CURRENT_SYSTEM_VERSION floatValue] >= 15.0)
 
 @class TZAlbumCell, TZAssetCell;
 @protocol TZImagePickerControllerDelegate;
@@ -82,11 +91,26 @@
 /// Default is YES, if set NO, user can't picking video.
 /// 默认为YES，如果设置为NO,用户将不能选择视频
 @property (nonatomic, assign) BOOL allowPickingVideo;
+/// Default is NO, if set YES, user can edit video.
+/// 默认为NO，如果设置为YES, 用户能编辑视频
+@property (nonatomic, assign) BOOL allowEditVideo;
+
+/// Export quality of cropped video, Default is AVAssetExportPresetMediumQuality
+/// 裁剪视频的导出质量，默认是 AVAssetExportPresetMediumQuality
+@property (nonatomic, copy) NSString *presetName;
+
+/// Default is 30s. If it exceeds the video duration, it is the video duration.The minimum duration of video crop is 1s.
+/// 默认是30s，如果超过视频时长，则为视频时长，小于1s不裁剪
+@property (nonatomic, assign) NSInteger maxCropVideoDuration;
+
+/// Default is NO, if set YES, The edited video will be automatically saved to the album.
+/// 默认为NO，如果设置为YES，编辑后的视频会自动保存到相册
+@property (nonatomic, assign) BOOL saveEditedVideoToAlbum;
 /// Default is NO / 默认为NO，为YES时可以多选视频/gif/图片，和照片共享最大可选张数maxImagesCount的限制
 @property (nonatomic, assign) BOOL allowPickingMultipleVideo;
 
-/// Default is NO, if set YES, user can picking gif image.
-/// 默认为NO，如果设置为YES,用户可以选择gif图片
+/// Default is NO, if set YES, user can picking gif image. When NO, gif will be treated as a regular image. If want not displayed, please refer to isAssetCanBeDisplayed
+/// 默认为NO，如果设置为YES，用户可以选择gif图片。为NO时gif会被当成普通图片，若要不显示，请参考isAssetCanBeDisplayed
 @property (nonatomic, assign) BOOL allowPickingGif;
 
 /// Default is YES, if set NO, user can't picking image.
@@ -96,7 +120,10 @@
 /// Default is YES, if set NO, user can't take picture.
 /// 默认为YES，如果设置为NO, 用户将不能拍摄照片
 @property (nonatomic, assign) BOOL allowTakePicture;
+
+#ifdef TZ_HAVE_LOCATION_CODE
 @property (nonatomic, assign) BOOL allowCameraLocation;
+#endif
 
 /// Default is YES, if set NO, user can't take video.
 /// 默认为YES，如果设置为NO, 用户将不能拍摄视频
@@ -216,6 +243,7 @@
 @property (nonatomic, copy) NSString *photoPreviewOriginDefImageName __attribute__((deprecated("Use -photoPreviewOriginDefImage.")));
 @property (nonatomic, copy) NSString *photoNumberIconImageName __attribute__((deprecated("Use -photoNumberIconImage.")));
 @property (nonatomic, strong) UIImage *takePictureImage;
+@property (nonatomic, strong) UIImage *addMorePhotoImage;
 @property (nonatomic, strong) UIImage *photoSelImage;
 @property (nonatomic, strong) UIImage *photoDefImage;
 @property (nonatomic, strong) UIImage *photoOriginSelImage;
@@ -327,6 +355,7 @@
 @interface TZCommonTools : NSObject
 + (UIEdgeInsets)tz_safeAreaInsets;
 + (BOOL)tz_isIPhoneX;
++ (BOOL)tz_isLandscape;
 + (CGFloat)tz_statusBarHeight;
 // 获得Info.plist数据字典
 + (NSDictionary *)tz_getInfoDictionary;
@@ -334,6 +363,7 @@
 + (BOOL)tz_isRightToLeftLayout;
 + (void)configBarButtonItem:(UIBarButtonItem *)item tzImagePickerVc:(TZImagePickerController *)tzImagePickerVc;
 + (BOOL)isICloudSyncError:(NSError *)error;
++ (BOOL)isAssetNotSelectable:(TZAssetModel *)model tzImagePickerVc:(TZImagePickerController *)tzImagePickerVc;
 @end
 
 
